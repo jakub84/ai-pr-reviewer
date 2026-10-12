@@ -12,4 +12,4 @@ cp .env.example .env   # set OPENROUTER_API_KEY, optionally REVIEW_MODEL
 git diff main | npm run review -w @ai-pr-reviewer/code-reviewer
 ```
 
-The verdict (matching `src/review-schema.ts`) goes to stdout; model, token usage and cost go to stderr.
+The verdict (matching `src/schemas/review.ts`) goes to stdout; model, token usage and cost go to stderr.

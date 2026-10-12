@@ -3,7 +3,9 @@
 import { text } from 'node:stream/consumers'
 import { createOpenRouter, type OpenRouterUsageAccounting } from '@openrouter/ai-sdk-provider'
 import { generateText, Output } from 'ai'
-import { REVIEW_SCHEMA, SYSTEM_PROMPT } from './review-schema.ts'
+import { buildReviewPrompt } from './prompts/review-request.ts'
+import { SYSTEM_PROMPT } from './prompts/system.ts'
+import { REVIEW_SCHEMA } from './schemas/review.ts'
 
 const DEFAULT_MODEL = 'anthropic/claude-sonnet-5.5'
 // Hard caps per run: oversized diffs are rejected before any tokens are billed.
@@ -31,7 +33,7 @@ const modelId = process.env.REVIEW_MODEL ?? DEFAULT_MODEL
 const { output, usage, providerMetadata } = await generateText({
   model: openrouter(modelId, { usage: { include: true } }),
   system: SYSTEM_PROMPT,
-  prompt: `Zrecenzuj poniższy diff:\n\n\`\`\`diff\n${diff}\n\`\`\``,
+  prompt: buildReviewPrompt(diff),
   output: Output.object({ schema: REVIEW_SCHEMA }),
   maxOutputTokens: MAX_OUTPUT_TOKENS,
 })
