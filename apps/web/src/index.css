@@ -1,0 +1,114 @@
+:root {
+  --text: #1f1d24;
+  --muted: #6b6375;
+  --bg: #f7f6f9;
+  --card: #ffffff;
+  --border: #e5e4e7;
+  --accent: #6d28d9;
+  --danger: #c0262d;
+
+  font:
+    16px/1.5 system-ui,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #ecebf0;
+    --muted: #a39cae;
+    --bg: #151418;
+    --card: #1f1d24;
+    --border: #2f2c36;
+    --accent: #a78bfa;
+    --danger: #f87171;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0;
+}
+
+h1,
+h2 {
+  margin-top: 0;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  color: var(--muted);
+}
+
+input,
+select,
+button {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button[type='submit'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.error,
+.over-limit {
+  color: var(--danger);
+}
+
+.expense-list {
+  list-style: none;
+}
+
+.expense-list li {
+  display: grid;
+  grid-template-columns: 100px 1fr auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.expense-list li:last-child {
+  border-bottom: none;
+}
+
+.category,
+.date,
+.empty {
+  color: var(--muted);
+}
