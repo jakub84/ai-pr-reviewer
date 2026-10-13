@@ -243,24 +243,24 @@ Without tools the agent runs a single step, so cost and latency are the same as 
 
 #### Automated
 
-- [x] 1.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
-- [x] 1.2 Formatting passes: `npm run format:check`
-- [x] 1.3 No references to `review-schema` remain in the repository: `git grep -n "review-schema" -- packages` returns nothing
+- [x] 1.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer` — 4268ea9
+- [x] 1.2 Formatting passes: `npm run format:check` — 4268ea9
+- [x] 1.3 No references to `review-schema` remain in the repository: `git grep -n "review-schema" -- packages` returns nothing — 4268ea9
 
 #### Manual
 
-- [x] 1.4 `git diff HEAD~1 | npm run review -w @ai-pr-reviewer/code-reviewer` returns a valid JSON verdict and a cost log on stderr
+- [x] 1.4 `git diff HEAD~1 | npm run review -w @ai-pr-reviewer/code-reviewer` returns a valid JSON verdict and a cost log on stderr — 4268ea9
 
 ### Phase 2: Agent module on ToolLoopAgent
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
-- [ ] 2.2 Formatting passes: `npm run format:check`
+- [x] 2.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
+- [x] 2.2 Formatting passes: `npm run format:check`
 
 #### Manual
 
-- [ ] 2.3 Code review: `src/agent/*` does not read `process.env` or `process.stdin`
+- [x] 2.3 Code review: `src/agent/*` does not read `process.env` or `process.stdin`
 
 ### Phase 3: CLI, public API and documentation
 
