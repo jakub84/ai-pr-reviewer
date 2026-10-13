@@ -23,6 +23,8 @@ The verdict (matching `src/schemas/review.ts`) goes to stdout; model, token usag
 | `src/prompts/review-request.ts` | `buildReviewPrompt(diff)` wraps the diff in the user prompt              |
 | `src/agent/model.ts`            | `createOpenRouterModel({ apiKey, modelId? })`, `DEFAULT_MODEL`           |
 | `src/agent/reviewer.ts`         | `createReviewer` (`ToolLoopAgent`), `reviewDiff`, per-run caps           |
+| `src/agent/cost.ts`             | `sumCostUsd`, `isCostAtLeast` stop condition, `MAX_COST_USD`             |
+| `src/agent/diff-size.ts`        | `countChangedLines(diff)`, the input for the `MAX_DIFF_LINES` cap        |
 | `src/cli.ts`                    | CLI: env and stdin checks, cost log on stderr, verdict on stdout         |
 | `src/index.ts`                  | Public API barrel, no side effects                                       |
 
@@ -39,5 +41,10 @@ const reviewer = createReviewer({ model })
 const { review, modelId, usage, costUsd } = await reviewDiff(reviewer, diff)
 ```
 
-`reviewDiff` rejects empty diffs and diffs above `MAX_DIFF_CHARS` before any tokens are billed,
-and sums the OpenRouter cost over all agent steps into `costUsd`.
+`reviewDiff` rejects empty diffs and diffs that change more than `MAX_DIFF_LINES` (3000 added + removed lines,
+see `countChangedLines`) before any tokens are billed, and sums the OpenRouter cost over all agent steps into `costUsd`.
+
+Each run also has a hard USD cap: `createReviewer({ model, maxCostUsd })` (default `MAX_COST_USD`, $0.50).
+AI SDK 7 has no built-in `maxCost`, so the cap is a custom stop condition (`isCostAtLeast`) checked
+between agent steps. It stops the loop from starting another step but cannot cut a step already in
+flight; `MAX_OUTPUT_TOKENS` and `MAX_DIFF_LINES` bound the cost of that single step.
