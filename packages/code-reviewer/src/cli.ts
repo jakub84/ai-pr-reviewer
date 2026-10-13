@@ -16,12 +16,14 @@ const diff = await text(process.stdin)
 const modelId = process.env.REVIEW_MODEL ?? DEFAULT_MODEL
 
 const reviewer = createReviewer({ model: createOpenRouterModel({ apiKey, modelId }) })
-const { review, usage, costUsd } = await reviewDiff(reviewer, diff)
+const result = await reviewDiff(reviewer, diff)
+const { review, usage, costUsd } = result
 
 // Cost goes to stderr so stdout stays a clean JSON verdict for the CI gate.
+// `model` is the id OpenRouter actually served, which can differ from the requested one.
 console.error(
   JSON.stringify({
-    model: modelId,
+    model: result.modelId,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
     costUsd,

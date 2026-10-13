@@ -41,7 +41,7 @@ export type Reviewer = ReturnType<typeof createReviewer>
 
 export async function reviewDiff(reviewer: Reviewer, diff: string): Promise<ReviewResult> {
   if (!diff.trim()) {
-    throw new Error('The diff on stdin is empty')
+    throw new Error('The diff is empty')
   }
   if (diff.length > MAX_DIFF_CHARS) {
     throw new Error(`The diff has ${diff.length} chars, above the ${MAX_DIFF_CHARS} limit`)
