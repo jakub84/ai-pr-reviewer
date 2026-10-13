@@ -266,12 +266,12 @@ Without tools the agent runs a single step, so cost and latency are the same as 
 
 #### Automated
 
-- [x] 3.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
-- [x] 3.2 Formatting passes: `npm run format:check`
-- [x] 3.3 Importing the library has no side effects: `npx tsx -e "import('./src/index.ts').then(m => console.log(Object.keys(m).sort().join(',')))"` run in `packages/code-reviewer` without `OPENROUTER_API_KEY` prints the exports without an error
-- [x] 3.4 The CLI keeps the TTY/env error: `npm run review -w @ai-pr-reviewer/code-reviewer < /dev/null` without a key ends with the `OPENROUTER_API_KEY` message
+- [x] 3.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer` — e9ab2d0
+- [x] 3.2 Formatting passes: `npm run format:check` — e9ab2d0
+- [x] 3.3 Importing the library has no side effects: `npx tsx -e "import('./src/index.ts').then(m => console.log(Object.keys(m).sort().join(',')))"` run in `packages/code-reviewer` without `OPENROUTER_API_KEY` prints the exports without an error — e9ab2d0
+- [x] 3.4 The CLI keeps the TTY/env error: `npm run review -w @ai-pr-reviewer/code-reviewer < /dev/null` without a key ends with the `OPENROUTER_API_KEY` message — e9ab2d0
 
 #### Manual
 
-- [ ] 3.5 `git diff HEAD~1 | npm run review -w @ai-pr-reviewer/code-reviewer` returns JSON with the same fields as before the change, and stderr shows a log with `model`, `inputTokens`, `outputTokens`, `costUsd`
-- [ ] 3.6 A diff that is too large (>200,000 chars) is rejected before the model is called (no cost log)
+- [x] 3.5 `git diff HEAD~1 | npm run review -w @ai-pr-reviewer/code-reviewer` returns JSON with the same fields as before the change, and stderr shows a log with `model`, `inputTokens`, `outputTokens`, `costUsd` — e9ab2d0
+- [x] 3.6 A diff that is too large (>200,000 chars) is rejected before the model is called (no cost log) — e9ab2d0
