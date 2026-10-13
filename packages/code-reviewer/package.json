@@ -6,9 +6,12 @@
   "engines": {
     "node": ">=22"
   },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "start": "npm run review --silent",
-    "review": "tsx --env-file-if-exists=.env src/index.ts",
+    "review": "tsx --env-file-if-exists=.env src/cli.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

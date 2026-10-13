@@ -255,21 +255,21 @@ Without tools the agent runs a single step, so cost and latency are the same as 
 
 #### Automated
 
-- [x] 2.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
-- [x] 2.2 Formatting passes: `npm run format:check`
+- [x] 2.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer` — 08412ae
+- [x] 2.2 Formatting passes: `npm run format:check` — 08412ae
 
 #### Manual
 
-- [x] 2.3 Code review: `src/agent/*` does not read `process.env` or `process.stdin`
+- [x] 2.3 Code review: `src/agent/*` does not read `process.env` or `process.stdin` — 08412ae
 
 ### Phase 3: CLI, public API and documentation
 
 #### Automated
 
-- [ ] 3.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
-- [ ] 3.2 Formatting passes: `npm run format:check`
-- [ ] 3.3 Importing the library has no side effects: `npx tsx -e "import('./src/index.ts').then(m => console.log(Object.keys(m).sort().join(',')))"` run in `packages/code-reviewer` without `OPENROUTER_API_KEY` prints the exports without an error
-- [ ] 3.4 The CLI keeps the TTY/env error: `npm run review -w @ai-pr-reviewer/code-reviewer < /dev/null` without a key ends with the `OPENROUTER_API_KEY` message
+- [x] 3.1 Typecheck passes: `npm run typecheck -w @ai-pr-reviewer/code-reviewer`
+- [x] 3.2 Formatting passes: `npm run format:check`
+- [x] 3.3 Importing the library has no side effects: `npx tsx -e "import('./src/index.ts').then(m => console.log(Object.keys(m).sort().join(',')))"` run in `packages/code-reviewer` without `OPENROUTER_API_KEY` prints the exports without an error
+- [x] 3.4 The CLI keeps the TTY/env error: `npm run review -w @ai-pr-reviewer/code-reviewer < /dev/null` without a key ends with the `OPENROUTER_API_KEY` message
 
 #### Manual
 
