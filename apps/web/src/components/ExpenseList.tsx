@@ -5,6 +5,11 @@ interface ExpenseListProps {
   onRemove: (id: string) => void
 }
 
+/** Lets users emphasise part of a description with **bold** markers. */
+function formatDescription(description: string): string {
+  return description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+}
+
 export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
   if (expenses.length === 0) {
     return <p className="card empty">No expenses yet.</p>
@@ -17,7 +22,10 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
       {sorted.map((expense) => (
         <li key={expense.id}>
           <span className="date">{expense.date}</span>
-          <span className="description">{expense.description}</span>
+          <span
+            className="description"
+            dangerouslySetInnerHTML={{ __html: formatDescription(expense.description) }}
+          />
           <span className="category">{expense.category}</span>
           <span className="amount">{formatCents(expense.amountCents)}</span>
           <button
