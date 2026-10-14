@@ -47,8 +47,9 @@ action `.github/actions/ai-code-review`.
   no verdict label. The labels are created on the first run.
 - **Comment**: every run posts a new comment with the verdict, the six scores, the summary, and the model and cost
   (built by `npm run ci-report`).
-- **Secrets**: set the repository secret `OPENROUTER_API_KEY`. The optional secret `REVIEW_MODEL` picks the model
-  (passed to the action's `model` input); when it is unset, the reviewer uses `DEFAULT_MODEL`.
+- **Secret and variable**: set the repository secret `OPENROUTER_API_KEY`. The optional repository variable
+  `REVIEW_MODEL` (Settings → Variables, not Secrets, so the model id stays readable in logs) picks the model
+  for the action's `model` input; when it is unset, the reviewer uses `DEFAULT_MODEL`.
 - **Excluded paths**: `package-lock.json` (root and workspaces) and `context/**` are left out of the diff; a PR
   that touches only those gets the "review skipped" comment.
 - **PR context**: the PR title and description are passed via `PR_TITLE` / `PR_BODY`; the description is capped
