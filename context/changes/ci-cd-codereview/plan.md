@@ -369,14 +369,14 @@ Reverting means deleting the workflow and the action directory.
 
 #### Automated
 
-- [x] 3.1 Formatting passes and the new YAML parses: `npm run format:check`
-- [x] 3.2 Typecheck and tests pass: `npm run typecheck && npm test`
-- [x] 3.3 The report CLI works on a captured local run
-- [x] 3.4 No PR title or body expression inside any `run:` block
+- [x] 3.1 Formatting passes and the new YAML parses: `npm run format:check` — aa7f172
+- [x] 3.2 Typecheck and tests pass: `npm run typecheck && npm test` — aa7f172
+- [x] 3.3 The report CLI works on a captured local run — aa7f172
+- [x] 3.4 No PR title or body expression inside any `run:` block — aa7f172
 
 #### Manual
 
-- [ ] 3.5 The `OPENROUTER_API_KEY` repository secret is set
+- [x] 3.5 The `OPENROUTER_API_KEY` repository secret is set
 - [ ] 3.6 A new non-draft PR gets a review comment, exactly one verdict label, and a green job
 - [ ] 3.7 Adding `ai-cr:review` posts a second comment, updates the verdict label and removes `ai-cr:review`
 - [ ] 3.8 Adding any other label starts no review

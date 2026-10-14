@@ -39,3 +39,5 @@ jobs:
           pr-title: ${{ github.event.pull_request.title }}
           pr-body: ${{ github.event.pull_request.body }}
           head-sha: ${{ github.event.pull_request.head.sha }}
+          # Optional; an unset secret is an empty string, so the reviewer falls back to DEFAULT_MODEL.
+          model: ${{ secrets.REVIEW_MODEL }}
