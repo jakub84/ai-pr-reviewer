@@ -1,0 +1,135 @@
+name: AI Code Review
+description: >-
+  Reviews the PR head commit with packages/code-reviewer, posts the verdict as a PR comment and sets
+  the ai-cr:passed / ai-cr:failed label. Never fails on a fail verdict or a review error.
+
+# Expects the default pull_request checkout (the PR merge commit) with fetch-depth: 2,
+# so HEAD^1..HEAD is the whole PR against its base.
+# PR title and body are untrusted: they reach shell steps only through env:, never inside run:.
+
+inputs:
+  openrouter-api-key:
+    description: OpenRouter API key for the reviewer.
+    required: true
+  github-token:
+    description: Token used by gh to comment and manage labels.
+    required: true
+  pr-number:
+    description: Pull request number.
+    required: true
+  pr-title:
+    description: Pull request title (untrusted).
+    required: false
+    default: ''
+  pr-body:
+    description: Pull request description (untrusted; the reviewer caps it at 4000 characters).
+    required: false
+    default: ''
+  head-sha:
+    description: Head commit SHA of the pull request.
+    required: true
+  model:
+    description: OpenRouter model id; empty uses the reviewer's DEFAULT_MODEL.
+    required: false
+    default: ''
+
+outputs:
+  outcome:
+    description: passed, failed or error.
+    value: ${{ steps.report.outputs.outcome }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Compute diff
+      shell: bash
+      run: |
+        git diff HEAD^1 HEAD -- . \
+          ':(exclude)package-lock.json' \
+          ':(exclude)**/package-lock.json' \
+          ':(exclude)context/**' \
+          > "$RUNNER_TEMP/pr.diff"
+        echo "Diff: $(wc -l < "$RUNNER_TEMP/pr.diff") lines"
+
+    # A non-zero exit (empty or oversized diff, API error) must not stop the action:
+    # the report step turns it into an "error" outcome and a "review skipped" comment.
+    - name: Review
+      id: review
+      shell: bash
+      env:
+        OPENROUTER_API_KEY: ${{ inputs.openrouter-api-key }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_BODY: ${{ inputs.pr-body }}
+      run: |
+        set +e
+        npm run review --silent -w @ai-pr-reviewer/code-reviewer \
+          < "$RUNNER_TEMP/pr.diff" \
+          > "$RUNNER_TEMP/review.out" \
+          2> "$RUNNER_TEMP/review.err"
+        code=$?
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "Review exit code: $code"
+        # stderr holds the cost line (or the error); show it in the job log.
+        cat "$RUNNER_TEMP/review.err" >&2
+
+    - name: Build report
+      id: report
+      shell: bash
+      env:
+        REVIEW_STDOUT_FILE: ${{ runner.temp }}/review.out
+        REVIEW_STDERR_FILE: ${{ runner.temp }}/review.err
+        REVIEW_EXIT_CODE: ${{ steps.review.outputs.exit-code }}
+        HEAD_SHA: ${{ inputs.head-sha }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        COMMENT_FILE: ${{ runner.temp }}/comment.md
+      run: |
+        outcome=$(npm run ci-report --silent -w @ai-pr-reviewer/code-reviewer)
+        echo "Outcome: $outcome"
+        echo "outcome=$outcome" >> "$GITHUB_OUTPUT"
+
+    - name: Publish comment and labels
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        OUTCOME: ${{ steps.report.outputs.outcome }}
+      run: |
+        gh label create 'ai-cr:passed' --color 0E8A16 --description 'AI code review passed' --force
+        gh label create 'ai-cr:failed' --color B60205 --description 'AI code review failed' --force
+        gh label create 'ai-cr:review' --color 1D76DB --description 'Re-run the AI code review' --force
+
+        current=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
+        has_label() { grep -qxF "$1" <<< "$current"; }
+
+        add=()
+        remove=()
+        case "$OUTCOME" in
+          passed) add+=('ai-cr:passed'); has_label 'ai-cr:failed' && remove+=('ai-cr:failed') ;;
+          failed) add+=('ai-cr:failed'); has_label 'ai-cr:passed' && remove+=('ai-cr:passed') ;;
+          *)
+            has_label 'ai-cr:passed' && remove+=('ai-cr:passed')
+            has_label 'ai-cr:failed' && remove+=('ai-cr:failed')
+            ;;
+        esac
+        has_label 'ai-cr:review' && remove+=('ai-cr:review')
+
+        args=()
+        for label in "${add[@]}"; do args+=(--add-label "$label"); done
+        for label in "${remove[@]}"; do args+=(--remove-label "$label"); done
+        if [ "${#args[@]}" -gt 0 ]; then
+          gh pr edit "$PR_NUMBER" "${args[@]}"
+        fi
+
+        gh pr comment "$PR_NUMBER" --body-file "$RUNNER_TEMP/comment.md"
