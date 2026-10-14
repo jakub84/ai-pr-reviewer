@@ -32,6 +32,10 @@ describe('parseAmountToCents', () => {
     ['12.5', 1250],
     ['12,50', 1250],
     [' 0.99 ', 99],
+    // Values that break float math: 0.29 * 100 === 28.999999999999996
+    ['0.29', 29],
+    ['1.15', 115],
+    ['19,99', 1999],
   ])('parses %s', (input, expected) => {
     expect(parseAmountToCents(input)).toBe(expected)
   })
