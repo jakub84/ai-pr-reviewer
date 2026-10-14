@@ -357,22 +357,22 @@ Reverting means deleting the workflow and the action directory.
 
 #### Automated
 
-- [x] 2.1 Package tests pass: `npm test -w @ai-pr-reviewer/code-reviewer`
-- [x] 2.2 Typecheck passes: `npm run typecheck`
-- [x] 2.3 Formatting passes: `npm run format:check`
+- [x] 2.1 Package tests pass: `npm test -w @ai-pr-reviewer/code-reviewer` — 543ed45
+- [x] 2.2 Typecheck passes: `npm run typecheck` — 543ed45
+- [x] 2.3 Formatting passes: `npm run format:check` — 543ed45
 
 #### Manual
 
-- [x] 2.4 The comment Markdown renders correctly in a GitHub preview
+- [x] 2.4 The comment Markdown renders correctly in a GitHub preview — 543ed45
 
 ### Phase 3: Composite action and workflow
 
 #### Automated
 
-- [ ] 3.1 Formatting passes and the new YAML parses: `npm run format:check`
-- [ ] 3.2 Typecheck and tests pass: `npm run typecheck && npm test`
-- [ ] 3.3 The report CLI works on a captured local run
-- [ ] 3.4 No PR title or body expression inside any `run:` block
+- [x] 3.1 Formatting passes and the new YAML parses: `npm run format:check`
+- [x] 3.2 Typecheck and tests pass: `npm run typecheck && npm test`
+- [x] 3.3 The report CLI works on a captured local run
+- [x] 3.4 No PR title or body expression inside any `run:` block
 
 #### Manual
 

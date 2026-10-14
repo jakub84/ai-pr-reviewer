@@ -1,0 +1,41 @@
+name: AI Code Review
+
+# Informational only: the job stays green for pass, fail and review errors, so it never blocks merge.
+# Later pushes are not reviewed automatically; add the ai-cr:review label to re-run.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, ready_for_review, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    # Skip drafts and fork PRs (no secrets), and any label other than the retry label.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ai-cr:review')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ai-cr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      # The default ref is the PR merge commit, so HEAD^1 is the base and HEAD^1..HEAD is the whole PR.
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+
+      - name: AI code review
+        uses: ./.github/actions/ai-code-review
+        with:
+          openrouter-api-key: ${{ secrets.OPENROUTER_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.pull_request.number }}
+          pr-title: ${{ github.event.pull_request.title }}
+          pr-body: ${{ github.event.pull_request.body }}
+          head-sha: ${{ github.event.pull_request.head.sha }}

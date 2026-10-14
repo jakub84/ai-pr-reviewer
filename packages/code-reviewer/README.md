@@ -33,6 +33,28 @@ Optional `PR_TITLE` and `PR_BODY` env vars give the reviewer the PR title and de
 | `src/ci-report.ts`              | CI entry (`npm run ci-report`): env and files in, comment file out, outcome on stdout |
 | `src/index.ts`                  | Public API barrel, no side effects                                                    |
 
+## CI
+
+`.github/workflows/ai-code-review.yml` runs the reviewer on pull requests to `main` through the local composite
+action `.github/actions/ai-code-review`.
+
+- **Triggers**: a PR is opened, reopened or marked ready for review. Drafts and PRs from forks are skipped.
+  Later pushes are not reviewed automatically.
+- **Retry**: add the `ai-cr:review` label to re-run the review. The run posts a new comment, updates the verdict
+  label and removes `ai-cr:review`. Any other label starts no review.
+- **Labels**: `ai-cr:passed` (verdict `pass`), `ai-cr:failed` (verdict `fail`). When the review cannot run
+  (empty or oversized diff, API error, missing key) the PR gets a "review skipped" comment with the reason and
+  no verdict label. The labels are created on the first run.
+- **Comment**: every run posts a new comment with the verdict, the six scores, the summary, and the model and cost
+  (built by `npm run ci-report`).
+- **Secret**: set the repository secret `OPENROUTER_API_KEY`. The optional action input `model` maps to `REVIEW_MODEL`.
+- **Excluded paths**: `package-lock.json` (root and workspaces) and `context/**` are left out of the diff; a PR
+  that touches only those gets the "review skipped" comment.
+- **PR context**: the PR title and description are passed via `PR_TITLE` / `PR_BODY`; the description is capped
+  at 4000 characters.
+- **Never blocks merge**: the job stays green for `pass`, `fail` and review errors; the result lives in the label
+  and the comment.
+
 ## Library API
 
 The package exports `./src/index.ts`, so other workspaces (e.g. evals) can import it by name.

@@ -10,3 +10,7 @@ archived_at: null
 ## Notes
 
 <!-- Free-form notes for this change: links, ad-hoc context, decisions that don't belong in research/frame/plan. -->
+
+Phase 3 addendum (agreed 2026-10-14): in `packages/code-reviewer/src/cli.ts` change
+`process.env.REVIEW_MODEL ?? DEFAULT_MODEL` to `||`, because the composite action's optional `model`
+input passes `REVIEW_MODEL=""` when unset and `??` would send an empty model id to OpenRouter.

@@ -13,7 +13,8 @@ if (process.stdin.isTTY) {
 }
 
 const diff = await text(process.stdin)
-const modelId = process.env.REVIEW_MODEL ?? DEFAULT_MODEL
+// `||`, not `??`: the CI action passes REVIEW_MODEL="" when its `model` input is unset.
+const modelId = process.env.REVIEW_MODEL || DEFAULT_MODEL
 // Optional PR context (CI sets it from the pull request); blank values are left out of the prompt.
 const pr = { title: process.env.PR_TITLE, description: process.env.PR_BODY }
 
