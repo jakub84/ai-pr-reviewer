@@ -1,7 +1,12 @@
 // ci/report.test.ts — CI report builder: outcome mapping, comment layout and error reasons.
 import { describe, expect, it } from 'vitest'
 import type { Review } from '../schemas/review.ts'
-import { buildCiReport, COMMENT_MARKER, MAX_ERROR_REASON_CHARS } from './report.ts'
+import {
+  buildCiReport,
+  COMMENT_MARKER,
+  findPreviousReview,
+  MAX_ERROR_REASON_CHARS,
+} from './report.ts'
 
 const headSha = '0f80079abcdef1234567890'
 const runUrl = 'https://github.com/acme/repo/actions/runs/42'
@@ -46,7 +51,7 @@ describe('buildCiReport', () => {
     const { outcome, comment } = ok(JSON.stringify(review, null, 2))
     expect(outcome).toBe('passed')
     expect(
-      comment.startsWith(`${COMMENT_MARKER}\n## ✅ AI code review: passed · \`0f80079\``),
+      comment.startsWith(`${COMMENT_MARKER}\n## ✅ AI code review #1: passed · \`0f80079\``),
     ).toBe(true)
     expect(comment).toContain(
       [
@@ -60,19 +65,20 @@ describe('buildCiReport', () => {
         '| Security and safety | 10/10 |',
       ].join('\n'),
     )
-    expect(comment).toContain(review.summary)
+    expect(comment).toContain(`### Summary\n\n${review.summary}`)
+    expect(comment).toContain('add the `ai-cr:review` label')
   })
 
   it('maps a valid fail to failed', () => {
     const { outcome, comment } = ok(JSON.stringify({ ...review, verdict: 'fail' }))
     expect(outcome).toBe('failed')
-    expect(comment).toContain('## ❌ AI code review: failed')
+    expect(comment).toContain('## ❌ AI code review #1: failed')
   })
 
   it('formats the footer from the cost line, with the run link', () => {
     const { comment } = ok(JSON.stringify(review), `some warning\n${costLine}\n`)
     expect(comment).toContain(
-      `---\nModel: \`anthropic/claude-sonnet-5.5\` · Tokens: 12345 in / 678 out · Cost: $0.0946 · [Workflow run](${runUrl})`,
+      `---\n<sub>Model: \`anthropic/claude-sonnet-5.5\` · Tokens: 12345 in / 678 out · Cost: $0.0946 · [Workflow run](${runUrl})</sub>`,
     )
   })
 
@@ -83,7 +89,7 @@ describe('buildCiReport', () => {
       exitCode: 0,
       headSha,
     })
-    expect(comment).toContain('---\nModel: n/a · Tokens: n/a in / n/a out · Cost: n/a')
+    expect(comment).toContain('---\n<sub>Model: n/a · Tokens: n/a in / n/a out · Cost: n/a</sub>')
     expect(comment).not.toContain('Workflow run')
   })
 
@@ -104,7 +110,7 @@ describe('buildCiReport', () => {
       runUrl,
     })
     expect(outcome).toBe('error')
-    expect(comment).toContain('## ⚠️ AI code review: review skipped · `0f80079`')
+    expect(comment).toContain('## ⚠️ AI code review #1: review skipped · `0f80079`')
     expect(comment).toContain(`\`\`\`text\n${errorLine}\n\`\`\``)
     expect(comment).toContain(`[Workflow run](${runUrl})`)
   })
@@ -176,5 +182,115 @@ describe('buildCiReport', () => {
 
   it('maps an exit code of 0 with empty stdout to error', () => {
     expect(ok('  \n').outcome).toBe('error')
+  })
+})
+
+describe('buildCiReport with earlier reviews', () => {
+  const previousSha = '9ebf47eaaaaaaa'
+  const failed: Review = {
+    ...review,
+    implementationCorrectness: 4,
+    testRiskCoverage: 3,
+    documentation: 6,
+    verdict: 'fail',
+  }
+
+  // A real earlier comment, so the test also covers the hidden data line round trip.
+  const commentFor = (earlier: Review, previousComments: string[] = []) =>
+    buildCiReport({
+      stdout: JSON.stringify(earlier),
+      stderr: costLine,
+      exitCode: 0,
+      headSha: previousSha,
+      previousComments,
+    }).comment
+
+  const rerun = (previousComments: string[], current: Review = review) =>
+    buildCiReport({
+      stdout: JSON.stringify(current),
+      stderr: costLine,
+      exitCode: 0,
+      headSha,
+      runUrl,
+      previousComments,
+    })
+
+  it('numbers the review after every earlier bot comment', () => {
+    const skipped = buildCiReport({ stdout: '', stderr: 'Error: boom', exitCode: 1, headSha })
+    const { comment } = rerun([commentFor(failed), skipped.comment])
+    expect(comment).toContain('## ✅ AI code review #3: passed · `0f80079`')
+  })
+
+  it('ignores comments that are not from the reviewer when numbering', () => {
+    const { comment } = rerun(['LGTM', 'Please fix the typo'])
+    expect(comment).toContain('## ✅ AI code review #1: passed')
+    expect(comment).toContain('| Criterion | Score |')
+  })
+
+  it('shows previous and current scores with the change per criterion', () => {
+    const { comment } = rerun([commentFor(failed)])
+    expect(comment).toContain(
+      [
+        '| Criterion | Previous | Now | Change |',
+        '| --- | --- | --- | --- |',
+        '| Implementation correctness | 4/10 | 8/10 | 🟢 +4 |',
+        '| Idiomaticity | 7/10 | 7/10 | ➖ 0 |',
+        '| Complexity | 9/10 | 9/10 | ➖ 0 |',
+        '| Test / risk coverage | 3/10 | 6/10 | 🟢 +3 |',
+        '| Documentation | 6/10 | 5/10 | 🔴 −1 |',
+        '| Security and safety | 10/10 | 10/10 | ➖ 0 |',
+      ].join('\n'),
+    )
+    expect(comment).not.toContain('| Criterion | Score |')
+  })
+
+  it('names the compared review, the verdict change and what improved or declined', () => {
+    const { comment } = rerun([commentFor(failed)])
+    expect(comment).toContain(
+      'Compared with review #1 on `9ebf47e`. Verdict changed: ❌ fail → ✅ pass.',
+    )
+    expect(comment).toContain(
+      '**Improved:** Implementation correctness (+4), Test / risk coverage (+3)  \n**Declined:** Documentation (−1)',
+    )
+  })
+
+  it('says when nothing changed', () => {
+    const { comment } = rerun([commentFor(review)])
+    expect(comment).toContain('Verdict unchanged: ✅ pass.')
+    expect(comment).toContain('No score changed.')
+  })
+
+  it('compares with the latest review that has scores, skipping a review skipped comment', () => {
+    const first = commentFor(failed)
+    const second = commentFor({ ...failed, implementationCorrectness: 6 }, [first])
+    const skipped = buildCiReport({
+      stdout: '',
+      stderr: 'Error: boom',
+      exitCode: 1,
+      headSha,
+      previousComments: [first, second],
+    }).comment
+    const { comment } = rerun([first, second, skipped])
+    expect(comment).toContain('Compared with review #2')
+    expect(comment).toContain('| Implementation correctness | 6/10 | 8/10 | 🟢 +2 |')
+  })
+
+  it('does not write a data line into a review skipped comment', () => {
+    const { comment } = buildCiReport({ stdout: '', stderr: 'Error: boom', exitCode: 1, headSha })
+    expect(comment).not.toContain('ai-cr-data')
+    expect(comment).toContain('add the `ai-cr:review` label to retry')
+  })
+})
+
+describe('findPreviousReview', () => {
+  it('returns undefined without a valid data line', () => {
+    expect(findPreviousReview([])).toBeUndefined()
+    expect(findPreviousReview([`${COMMENT_MARKER}\n## old comment without data`])).toBeUndefined()
+    expect(
+      findPreviousReview([`${COMMENT_MARKER}\n<!-- ai-cr-data {not json} -->`]),
+    ).toBeUndefined()
+    expect(
+      findPreviousReview([`${COMMENT_MARKER}\n<!-- ai-cr-data {"review":1,"sha":"abc"} -->`]),
+    ).toBeUndefined()
   })
 })

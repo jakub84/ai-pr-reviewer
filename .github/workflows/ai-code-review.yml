@@ -1,7 +1,8 @@
 name: AI Code Review
 
 # Informational only: the job stays green for pass, fail and review errors, so it never blocks merge.
-# Later pushes are not reviewed automatically; add the ai-cr:review label to re-run.
+# The first review runs when the PR opens. Later pushes are not reviewed automatically:
+# when the author is ready, they add the ai-cr:review label to get a new review.
 on:
   pull_request:
     branches: [main]
@@ -20,17 +21,24 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.action != 'labeled' || github.event.label.name == 'ai-cr:review')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     concurrency:
       group: ai-cr-${{ github.event.pull_request.number }}
       cancel-in-progress: true
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       # The default ref is the PR merge commit, so HEAD^1 is the base and HEAD^1..HEAD is the whole PR.
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
 
-      - name: AI code review
+      # Node, install, diff, earlier reviews, review and report; expand the step to see each one.
+      - name: Run AI code review
+        id: review
         uses: ./.github/actions/ai-code-review
         with:
           openrouter-api-key: ${{ secrets.OPENROUTER_API_KEY }}
@@ -42,3 +50,43 @@ jobs:
           # Optional repo variable (not a secret, so the model id stays readable in logs);
           # unset means an empty string and the reviewer falls back to DEFAULT_MODEL.
           model: ${{ vars.REVIEW_MODEL }}
+
+      # Every review is a new comment, so the PR keeps the history of verdicts.
+      - name: Post review comment
+        env:
+          COMMENT_FILE: ${{ steps.review.outputs.comment-file }}
+        run: gh pr comment "$PR_NUMBER" --body-file "$COMMENT_FILE"
+
+      # passed/failed follow the verdict; a review error removes both, as the PR has no verdict.
+      - name: Apply verdict label
+        env:
+          OUTCOME: ${{ steps.review.outputs.outcome }}
+        run: |
+          gh label create 'ai-cr:passed' --color 0E8A16 --description 'AI code review passed' --force
+          gh label create 'ai-cr:failed' --color B60205 --description 'AI code review failed' --force
+          gh label create 'ai-cr:review' --color 1D76DB --description 'Run a new AI code review' --force
+
+          current=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
+          has_label() { grep -qxF "$1" <<< "$current"; }
+
+          args=()
+          case "$OUTCOME" in
+            passed) add='ai-cr:passed'; stale='ai-cr:failed' ;;
+            failed) add='ai-cr:failed'; stale='ai-cr:passed' ;;
+            *) add='' ;;
+          esac
+          if [ -n "$add" ]; then
+            args+=(--add-label "$add")
+            has_label "$stale" && args+=(--remove-label "$stale")
+          else
+            has_label 'ai-cr:passed' && args+=(--remove-label 'ai-cr:passed')
+            has_label 'ai-cr:failed' && args+=(--remove-label 'ai-cr:failed')
+          fi
+          if [ "${#args[@]}" -gt 0 ]; then
+            gh pr edit "$PR_NUMBER" "${args[@]}"
+          fi
+
+      # Runs even when an earlier step failed, so the author can always add the label again.
+      - name: Remove retry label
+        if: always() && contains(github.event.pull_request.labels.*.name, 'ai-cr:review')
+        run: gh pr edit "$PR_NUMBER" --remove-label 'ai-cr:review'
