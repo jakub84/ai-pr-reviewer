@@ -6,6 +6,7 @@ interface ExpenseListProps {
 }
 
 // The capture group keeps the bold parts in split(): even indexes are plain text, odd are bold.
+// No `g` flag needed: split() always splits on every match, the flag only matters for match/replace.
 const BOLD = /\*\*(.+?)\*\*/
 
 /**
