@@ -43,8 +43,7 @@ export function isCategory(value: string): value is Category {
 export function parseAmountToCents(input: string): number | null {
   const trimmed = input.trim()
   if (!AMOUNT.test(trimmed)) return null
-  const [whole, fraction = ''] = trimmed.replace(',', '.').split('.')
-  return Number(whole) * 100 + Number(fraction.padEnd(2, '0'))
+  return Math.floor(parseFloat(trimmed.replace(',', '.')) * 100)
 }
 
 function isValidIsoDate(value: string): boolean {
