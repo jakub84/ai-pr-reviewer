@@ -12,7 +12,8 @@
   "scripts": {
     "start": "npm run review --silent",
     "review": "tsx --env-file-if-exists=.env src/cli.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "^3.1.0",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.4"
   }
 }

@@ -14,9 +14,11 @@ if (process.stdin.isTTY) {
 
 const diff = await text(process.stdin)
 const modelId = process.env.REVIEW_MODEL ?? DEFAULT_MODEL
+// Optional PR context (CI sets it from the pull request); blank values are left out of the prompt.
+const pr = { title: process.env.PR_TITLE, description: process.env.PR_BODY }
 
 const reviewer = createReviewer({ model: createOpenRouterModel({ apiKey, modelId }) })
-const result = await reviewDiff(reviewer, diff)
+const result = await reviewDiff(reviewer, diff, pr)
 const { review, usage, costUsd } = result
 
 // Cost goes to stderr so stdout stays a clean JSON verdict for the CI gate.

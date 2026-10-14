@@ -1,6 +1,6 @@
 // agent/reviewer.ts — ToolLoopAgent configured for code review, plus the reviewDiff entry call.
 import { isStepCount, Output, ToolLoopAgent, type LanguageModel } from 'ai'
-import { buildReviewPrompt } from '../prompts/review-request.ts'
+import { buildReviewPrompt, type PullRequestContext } from '../prompts/review-request.ts'
 import { SYSTEM_PROMPT } from '../prompts/system.ts'
 import { REVIEW_SCHEMA, type Review } from '../schemas/review.ts'
 import { isCostAtLeast, MAX_COST_USD, sumCostUsd } from './cost.ts'
@@ -42,7 +42,12 @@ export function createReviewer({
 
 export type Reviewer = ReturnType<typeof createReviewer>
 
-export async function reviewDiff(reviewer: Reviewer, diff: string): Promise<ReviewResult> {
+// `pr` (title, description) is optional prompt context; the size cap counts diff lines only.
+export async function reviewDiff(
+  reviewer: Reviewer,
+  diff: string,
+  pr?: PullRequestContext,
+): Promise<ReviewResult> {
   if (!diff.trim()) {
     throw new Error('The diff is empty')
   }
@@ -51,7 +56,7 @@ export async function reviewDiff(reviewer: Reviewer, diff: string): Promise<Revi
     throw new Error(`The diff changes ${changedLines} lines, above the ${MAX_DIFF_LINES} limit`)
   }
 
-  const result = await reviewer.generate({ prompt: buildReviewPrompt(diff) })
+  const result = await reviewer.generate({ prompt: buildReviewPrompt(diff, pr) })
 
   const { inputTokens, outputTokens, totalTokens } = result.totalUsage
   return {

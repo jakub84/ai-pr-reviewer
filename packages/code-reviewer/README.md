@@ -13,6 +13,9 @@ git diff main | npm run review -w @ai-pr-reviewer/code-reviewer
 ```
 
 The verdict (matching `src/schemas/review.ts`) goes to stdout; model, token usage and cost go to stderr.
+Optional `PR_TITLE` and `PR_BODY` env vars give the reviewer the PR title and description (capped at
+`MAX_DESCRIPTION_CHARS`, 4000) to check against the diff; library callers pass them as
+`reviewDiff(reviewer, diff, { title, description })`.
 
 ## Layout
 
@@ -20,7 +23,7 @@ The verdict (matching `src/schemas/review.ts`) goes to stdout; model, token usag
 | ------------------------------- | ------------------------------------------------------------------------ |
 | `src/schemas/review.ts`         | The contract: `REVIEW_SCHEMA` (zod), `REVIEW_JSON_SCHEMA`, type `Review` |
 | `src/prompts/system.ts`         | `SYSTEM_PROMPT`                                                          |
-| `src/prompts/review-request.ts` | `buildReviewPrompt(diff)` wraps the diff in the user prompt              |
+| `src/prompts/review-request.ts` | `buildReviewPrompt(diff, pr?)` wraps the diff and optional PR context    |
 | `src/agent/model.ts`            | `createOpenRouterModel({ apiKey, modelId? })`, `DEFAULT_MODEL`           |
 | `src/agent/reviewer.ts`         | `createReviewer` (`ToolLoopAgent`), `reviewDiff`, per-run caps           |
 | `src/agent/cost.ts`             | `sumCostUsd`, `isCostAtLeast` stop condition, `MAX_COST_USD`             |
