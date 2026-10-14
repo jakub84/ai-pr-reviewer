@@ -19,17 +19,19 @@ Optional `PR_TITLE` and `PR_BODY` env vars give the reviewer the PR title and de
 
 ## Layout
 
-| Path                            | Role                                                                     |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| `src/schemas/review.ts`         | The contract: `REVIEW_SCHEMA` (zod), `REVIEW_JSON_SCHEMA`, type `Review` |
-| `src/prompts/system.ts`         | `SYSTEM_PROMPT`                                                          |
-| `src/prompts/review-request.ts` | `buildReviewPrompt(diff, pr?)` wraps the diff and optional PR context    |
-| `src/agent/model.ts`            | `createOpenRouterModel({ apiKey, modelId? })`, `DEFAULT_MODEL`           |
-| `src/agent/reviewer.ts`         | `createReviewer` (`ToolLoopAgent`), `reviewDiff`, per-run caps           |
-| `src/agent/cost.ts`             | `sumCostUsd`, `isCostAtLeast` stop condition, `MAX_COST_USD`             |
-| `src/agent/diff-size.ts`        | `countChangedLines(diff)`, the input for the `MAX_DIFF_LINES` cap        |
-| `src/cli.ts`                    | CLI: env and stdin checks, cost log on stderr, verdict on stdout         |
-| `src/index.ts`                  | Public API barrel, no side effects                                       |
+| Path                            | Role                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------- |
+| `src/schemas/review.ts`         | The contract: `REVIEW_SCHEMA` (zod), `REVIEW_JSON_SCHEMA`, type `Review`              |
+| `src/prompts/system.ts`         | `SYSTEM_PROMPT`                                                                       |
+| `src/prompts/review-request.ts` | `buildReviewPrompt(diff, pr?)` wraps the diff and optional PR context                 |
+| `src/agent/model.ts`            | `createOpenRouterModel({ apiKey, modelId? })`, `DEFAULT_MODEL`                        |
+| `src/agent/reviewer.ts`         | `createReviewer` (`ToolLoopAgent`), `reviewDiff`, per-run caps                        |
+| `src/agent/cost.ts`             | `sumCostUsd`, `isCostAtLeast` stop condition, `MAX_COST_USD`                          |
+| `src/agent/diff-size.ts`        | `countChangedLines(diff)`, the input for the `MAX_DIFF_LINES` cap                     |
+| `src/cli.ts`                    | CLI: env and stdin checks, cost log on stderr, verdict on stdout                      |
+| `src/ci/report.ts`              | `buildCiReport`: CLI output to PR comment and outcome (passed/failed/error)           |
+| `src/ci-report.ts`              | CI entry (`npm run ci-report`): env and files in, comment file out, outcome on stdout |
+| `src/index.ts`                  | Public API barrel, no side effects                                                    |
 
 ## Library API
 

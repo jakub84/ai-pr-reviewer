@@ -1,4 +1,4 @@
-// Public API of the code-review agent. Side-effect free; the CLI lives in cli.ts.
+// Public API of the code-review agent. Side-effect free; the CLIs live in cli.ts and ci-report.ts.
 export { isCostAtLeast, MAX_COST_USD, sumCostUsd } from './agent/cost.ts'
 export { countChangedLines } from './agent/diff-size.ts'
 export { createOpenRouterModel, DEFAULT_MODEL } from './agent/model.ts'
@@ -11,6 +11,7 @@ export {
   type Reviewer,
   type ReviewResult,
 } from './agent/reviewer.ts'
+export { buildCiReport, type CiOutcome, type CiReport, type CiReportInput } from './ci/report.ts'
 export {
   buildReviewPrompt,
   MAX_DESCRIPTION_CHARS,

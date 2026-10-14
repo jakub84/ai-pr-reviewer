@@ -12,6 +12,7 @@
   "scripts": {
     "start": "npm run review --silent",
     "review": "tsx --env-file-if-exists=.env src/cli.ts",
+    "ci-report": "tsx src/ci-report.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

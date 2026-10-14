@@ -343,27 +343,27 @@ Reverting means deleting the workflow and the action directory.
 
 #### Automated
 
-- [x] 1.1 Package tests pass: `npm test -w @ai-pr-reviewer/code-reviewer`
-- [x] 1.2 Typecheck passes: `npm run typecheck`
-- [x] 1.3 Formatting passes: `npm run format:check`
-- [x] 1.4 With no `PR_*` env set, the CLI still writes pure JSON on stdout
+- [x] 1.1 Package tests pass: `npm test -w @ai-pr-reviewer/code-reviewer` — 0f80079
+- [x] 1.2 Typecheck passes: `npm run typecheck` — 0f80079
+- [x] 1.3 Formatting passes: `npm run format:check` — 0f80079
+- [x] 1.4 With no `PR_*` env set, the CLI still writes pure JSON on stdout — 0f80079
 
 #### Manual
 
-- [x] 1.5 A PR description that contradicts the diff is noticed in the summary
-- [x] 1.6 An injected instruction in `PR_BODY` is not followed
+- [x] 1.5 A PR description that contradicts the diff is noticed in the summary — 0f80079
+- [x] 1.6 An injected instruction in `PR_BODY` is not followed — 0f80079
 
 ### Phase 2: CI report builder
 
 #### Automated
 
-- [ ] 2.1 Package tests pass: `npm test -w @ai-pr-reviewer/code-reviewer`
-- [ ] 2.2 Typecheck passes: `npm run typecheck`
-- [ ] 2.3 Formatting passes: `npm run format:check`
+- [x] 2.1 Package tests pass: `npm test -w @ai-pr-reviewer/code-reviewer`
+- [x] 2.2 Typecheck passes: `npm run typecheck`
+- [x] 2.3 Formatting passes: `npm run format:check`
 
 #### Manual
 
-- [ ] 2.4 The comment Markdown renders correctly in a GitHub preview
+- [x] 2.4 The comment Markdown renders correctly in a GitHub preview
 
 ### Phase 3: Composite action and workflow
 
