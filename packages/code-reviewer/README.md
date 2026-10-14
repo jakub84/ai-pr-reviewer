@@ -35,18 +35,27 @@ Optional `PR_TITLE` and `PR_BODY` env vars give the reviewer the PR title and de
 
 ## CI
 
-`.github/workflows/ai-code-review.yml` runs the reviewer on pull requests to `main` through the local composite
-action `.github/actions/ai-code-review`.
+`.github/workflows/ai-code-review.yml` runs the reviewer on pull requests to `main`. The local composite action
+`.github/actions/ai-code-review` does the review and builds the comment (Node, install, diff, earlier reviews,
+reviewer, report); the workflow posts it and manages the labels, so the job shows:
+
+```
+Checkout → Run AI code review → Post review comment → Apply verdict label → Remove retry label
+```
 
 - **Triggers**: a PR is opened, reopened or marked ready for review. Drafts and PRs from forks are skipped.
   Later pushes are not reviewed automatically.
-- **Retry**: add the `ai-cr:review` label to re-run the review. The run posts a new comment, updates the verdict
-  label and removes `ai-cr:review`. Any other label starts no review.
+- **New review on demand**: when the changes are ready, add the `ai-cr:review` label. The run posts a new comment,
+  updates the verdict label and removes `ai-cr:review`, so it can be added again. Any other label starts no review.
 - **Labels**: `ai-cr:passed` (verdict `pass`), `ai-cr:failed` (verdict `fail`). When the review cannot run
   (empty or oversized diff, API error, missing key) the PR gets a "review skipped" comment with the reason and
   no verdict label. The labels are created on the first run.
-- **Comment**: every run posts a new comment with the verdict, the six scores, the summary, and the model and cost
-  (built by `npm run ci-report`).
+- **Comment**: every run posts a new, numbered comment (`AI code review #2`) with the verdict, the six scores, the
+  summary, and the model and cost (built by `npm run ci-report`). From the second review on, the table shows
+  the previous and current score of each criterion with the change, the verdict change, and which criteria
+  improved or declined. The scores travel in a hidden `<!-- ai-cr-data … -->` line; only comments by
+  `github-actions[bot]` are read, and a "review skipped" comment is never compared against.
+- **Job summary**: the same report is written to the run's summary page.
 - **Secret and variable**: set the repository secret `OPENROUTER_API_KEY`. The optional repository variable
   `REVIEW_MODEL` (Settings → Variables, not Secrets, so the model id stays readable in logs) picks the model
   for the action's `model` input; when it is unset, the reviewer uses `DEFAULT_MODEL`.
