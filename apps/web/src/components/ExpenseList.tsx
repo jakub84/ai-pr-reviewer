@@ -5,9 +5,17 @@ interface ExpenseListProps {
   onRemove: (id: string) => void
 }
 
-/** Lets users emphasise part of a description with **bold** markers. */
-function formatDescription(description: string): string {
-  return description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+// The capture group keeps the bold parts in split(): even indexes are plain text, odd are bold.
+const BOLD = /\*\*(.+?)\*\*/
+
+/**
+ * Lets users emphasise part of a description with **bold** markers. Renders React nodes,
+ * never HTML, so a description is always shown as text and cannot inject markup.
+ */
+function FormattedDescription({ text }: { text: string }) {
+  return text
+    .split(BOLD)
+    .map((part, index) => (index % 2 === 1 ? <strong key={index}>{part}</strong> : part))
 }
 
 export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
@@ -22,10 +30,9 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
       {sorted.map((expense) => (
         <li key={expense.id}>
           <span className="date">{expense.date}</span>
-          <span
-            className="description"
-            dangerouslySetInnerHTML={{ __html: formatDescription(expense.description) }}
-          />
+          <span className="description">
+            <FormattedDescription text={expense.description} />
+          </span>
           <span className="category">{expense.category}</span>
           <span className="amount">{formatCents(expense.amountCents)}</span>
           <button
