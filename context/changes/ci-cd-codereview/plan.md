@@ -377,9 +377,9 @@ Reverting means deleting the workflow and the action directory.
 #### Manual
 
 - [x] 3.5 The `OPENROUTER_API_KEY` repository secret is set
-- [ ] 3.6 A new non-draft PR gets a review comment, exactly one verdict label, and a green job
-- [ ] 3.7 Adding `ai-cr:review` posts a second comment, updates the verdict label and removes `ai-cr:review`
-- [ ] 3.8 Adding any other label starts no review
+- [x] 3.6 A new non-draft PR gets a review comment, exactly one verdict label, and a green job
+- [x] 3.7 Adding `ai-cr:review` posts a second comment, updates the verdict label and removes `ai-cr:review`
+- [x] 3.8 Adding any other label starts no review
 - [ ] 3.9 A draft PR is skipped; marking it ready triggers a review
 - [ ] 3.10 A PR touching only `context/**` gets a skipped comment, no verdict label, and a green job
-- [ ] 3.11 The job log shows the cost line and the comment footer shows the model and cost
+- [x] 3.11 The job log shows the cost line and the comment footer shows the model and cost
