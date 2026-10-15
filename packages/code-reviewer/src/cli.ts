@@ -1,8 +1,12 @@
 // CLI entry point of the code review agent: git diff in, structured verdict out.
 // Usage: git diff main | npm run review -w @ai-pr-reviewer/code-reviewer
+import { existsSync } from 'node:fs'
 import { text } from 'node:stream/consumers'
 import { createOpenRouterModel, DEFAULT_MODEL } from './agent/model.ts'
 import { createReviewer, reviewDiff } from './agent/reviewer.ts'
+
+// Local runs read packages/code-reviewer/.env; CI has no such file and sets the env vars itself.
+if (existsSync('.env')) process.loadEnvFile('.env')
 
 const apiKey = process.env.OPENROUTER_API_KEY
 if (!apiKey) {

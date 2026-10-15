@@ -101,9 +101,9 @@ runs:
           2> "$RUNNER_TEMP/review.err"
         code=$?
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
-        echo "Review exit code: $code"
         # stderr holds the cost line (or the error); show it in the job log.
         cat "$RUNNER_TEMP/review.err" >&2
+        echo "Review exit code: $code"
 
     # The same report goes to the job summary, so it is readable on the run page too.
     - name: Build review report
