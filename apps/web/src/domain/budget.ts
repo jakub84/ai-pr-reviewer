@@ -108,14 +108,19 @@ export function isOverLimit(expenses: readonly Expense[], limitCents: number): b
   return limitCents > 0 && totalCents(expenses) > limitCents
 }
 
-/** How much of the monthly limit is left. */
-export function remainingCents(expenses: readonly Expense[], limitCents: number): number {
-  return limitCents - totalCents(expenses)
+/**
+ * How much of the monthly limit is left, never below 0 (going over is shown by isOverLimit).
+ * Returns null when there is no limit, so the UI can hide the figure.
+ */
+export function remainingCents(expenses: readonly Expense[], limitCents: number): number | null {
+  if (limitCents <= 0) return null
+  return Math.max(0, limitCents - totalCents(expenses))
 }
 
-/** Average expense amount, in cents. */
+/** Average expense amount, rounded to whole cents; 0 for an empty list. */
 export function averageCents(expenses: readonly Expense[]): number {
-  return totalCents(expenses) / expenses.length
+  if (expenses.length === 0) return 0
+  return Math.round(totalCents(expenses) / expenses.length)
 }
 
 const currency = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' })
