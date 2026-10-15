@@ -1,7 +1,7 @@
 # @ai-pr-reviewer/code-reviewer
 
 AI code review agent for pull requests: takes a `git diff`, returns a structured JSON verdict
-(per-criterion scores, pass/fail, summary). Runs locally and as a CI step.
+(per-criterion scores with a rationale each, pass/fail, summary). Runs locally and as a CI step.
 
 Stack: AI SDK 7 (`ai`, `ToolLoopAgent`), OpenRouter provider (`@openrouter/ai-sdk-provider@3`), zod 4, run with tsx on Node 22+.
 
@@ -50,8 +50,9 @@ Checkout → Run AI code review → Post review comment → Apply verdict label 
 - **Labels**: `ai-cr:passed` (verdict `pass`), `ai-cr:failed` (verdict `fail`). When the review cannot run
   (empty or oversized diff, API error, missing key) the PR gets a "review skipped" comment with the reason and
   no verdict label. The labels are created on the first run.
-- **Comment**: every run posts a new, numbered comment (`AI code review #2`) with the verdict, the six scores, the
-  summary, and the model and cost (built by `npm run ci-report`). From the second review on, the table shows
+- **Comment**: every run posts a new, numbered comment (`AI code review #2`) with the verdict, the six scores, a
+  rationale per score, the summary (verdict line, critical issues with file and line, recommendations), and the
+  model and cost (built by `npm run ci-report`). From the second review on, the table shows
   the previous and current score of each criterion with the change, the verdict change, and which criteria
   improved or declined. The scores travel in a hidden `<!-- ai-cr-data … -->` line; only comments by
   `github-actions[bot]` are read, and a "review skipped" comment is never compared against.
