@@ -1,8 +1,10 @@
 import {
+  averageCents,
   CATEGORIES,
   formatCents,
   isOverLimit,
   parseAmountToCents,
+  remainingCents,
   totalCents,
   totalsByCategory,
   type Expense,
@@ -26,6 +28,8 @@ export function Summary({ expenses, limitCents, onLimitChange }: SummaryProps) {
         Total: <strong>{formatCents(total)}</strong>
         {overLimit && <span role="alert"> — over the limit!</span>}
       </p>
+      <p>Remaining: {formatCents(remainingCents(expenses, limitCents))}</p>
+      <p>Average expense: {formatCents(averageCents(expenses))}</p>
 
       <label>
         Monthly limit (PLN, 0 = none)
