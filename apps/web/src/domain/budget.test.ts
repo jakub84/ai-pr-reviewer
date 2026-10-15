@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  averageCents,
   isOverLimit,
   parseAmountToCents,
+  remainingCents,
   totalCents,
   totalsByCategory,
   validateExpense,
@@ -91,5 +93,24 @@ describe('totals', () => {
     expect(isOverLimit(expenses, 3999)).toBe(true)
     expect(isOverLimit(expenses, 4000)).toBe(false)
     expect(isOverLimit(expenses, 0)).toBe(false)
+  })
+
+  it('computes the remaining limit, never below zero', () => {
+    expect(remainingCents(expenses, 5000)).toBe(1000)
+    expect(remainingCents(expenses, 4000)).toBe(0)
+    expect(remainingCents(expenses, 3000)).toBe(0)
+  })
+
+  it('has no remaining amount without a limit', () => {
+    expect(remainingCents(expenses, 0)).toBeNull()
+    expect(remainingCents(expenses, -100)).toBeNull()
+  })
+
+  it('averages expenses in whole cents', () => {
+    expect(averageCents(expenses)).toBe(1333)
+    expect(averageCents([expense({ amountCents: 1001 }), expense({ amountCents: 1002 })])).toBe(
+      1002,
+    )
+    expect(averageCents([])).toBe(0)
   })
 })

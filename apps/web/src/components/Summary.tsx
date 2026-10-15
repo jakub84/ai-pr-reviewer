@@ -1,8 +1,10 @@
 import {
+  averageCents,
   CATEGORIES,
   formatCents,
   isOverLimit,
   parseAmountToCents,
+  remainingCents,
   totalCents,
   totalsByCategory,
   type Expense,
@@ -18,6 +20,7 @@ export function Summary({ expenses, limitCents, onLimitChange }: SummaryProps) {
   const total = totalCents(expenses)
   const byCategory = totalsByCategory(expenses)
   const overLimit = isOverLimit(expenses, limitCents)
+  const remaining = remainingCents(expenses, limitCents)
 
   return (
     <section className="card summary" aria-label="Summary">
@@ -26,6 +29,8 @@ export function Summary({ expenses, limitCents, onLimitChange }: SummaryProps) {
         Total: <strong>{formatCents(total)}</strong>
         {overLimit && <span role="alert"> — over the limit!</span>}
       </p>
+      {remaining !== null && <p>Remaining: {formatCents(remaining)}</p>}
+      {expenses.length > 0 && <p>Average expense: {formatCents(averageCents(expenses))}</p>}
 
       <label>
         Monthly limit (PLN, 0 = none)
