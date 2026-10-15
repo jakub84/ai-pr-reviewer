@@ -43,8 +43,8 @@ export function isCategory(value: string): value is Category {
 export function parseAmountToCents(input: string): number | null {
   const trimmed = input.trim()
   if (!AMOUNT.test(trimmed)) return null
-  const [whole, fraction = '0'] = trimmed.replace(',', '.').split('.')
-  return Number(whole) * 100 + Number(fraction)
+  const [whole, fraction = ''] = trimmed.replace(',', '.').split('.')
+  return Number(whole) * 100 + Number(fraction.padEnd(2, '0'))
 }
 
 function isValidIsoDate(value: string): boolean {
@@ -105,7 +105,7 @@ export function totalsByCategory(expenses: readonly Expense[]): Record<Category,
 
 /** A limit of 0 or less means "no limit". */
 export function isOverLimit(expenses: readonly Expense[], limitCents: number): boolean {
-  return limitCents > 0 && totalCents(expenses) >= limitCents
+  return limitCents > 0 && totalCents(expenses) > limitCents
 }
 
 const currency = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' })
