@@ -1,7 +1,16 @@
 // schemas/review.ts — shared contract for the code-review agent (M5L2, M5L3).
 // The entry point, the CI gate and the promptfoo evals read this one definition.
-// Criteria follow m5l3-requirements: six scores on a 1-10 scale, a binding verdict, a summary.
+// Criteria follow m5l3-requirements: six scores on a 1-10 scale, a binding verdict, a summary,
+// plus a rationale per score.
 import { z } from 'zod'
+
+const rationale = (criterion: string) =>
+  z
+    .string()
+    .describe(
+      `Why the ${criterion} score is what it is: 1-4 sentences, plain Markdown on one line, ` +
+        'naming the concrete code (identifiers, operators, values) behind the score.',
+    )
 
 // Scores are plain z.number(): Anthropic structured output rejects minimum/maximum on
 // integer types, so the 1-10 range is carried by the field description and the prompt.
@@ -48,10 +57,24 @@ export const REVIEW_SCHEMA = z.object({
         '1: a vulnerability, leaked secrets or unsafe trust in external input. ' +
         '10: input is validated, secrets are handled correctly, no new attack surface.',
     ),
+  rationale: z
+    .object({
+      implementationCorrectness: rationale('implementation correctness'),
+      idiomaticity: rationale('idiomaticity'),
+      complexity: rationale('complexity'),
+      testRiskCoverage: rationale('test coverage'),
+      documentation: rationale('documentation'),
+      securitySafety: rationale('security'),
+    })
+    .describe('Per-criterion explanation of each score, keyed like the scores'),
   verdict: z
     .enum(['pass', 'fail'])
     .describe('Binding verdict for the whole change; read by the CI gate'),
-  summary: z.string().describe('Markdown summary, ready to post as a PR comment'),
+  summary: z
+    .string()
+    .describe(
+      'Markdown review summary, ready to post as a PR comment: verdict line, critical issues, recommendations',
+    ),
 })
 
 // draft-07 keeps zod output compatible with the Claude Agent SDK outputFormat.

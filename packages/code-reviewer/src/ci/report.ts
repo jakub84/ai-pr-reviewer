@@ -27,7 +27,8 @@ const DATA_LINE = /^<!-- ai-cr-data (\{.*\}) -->$/m
 export const MAX_ERROR_REASON_CHARS = 500
 
 // Derived from the review schema, so a schema change breaks the build, not the comment.
-const SCORES_SCHEMA = REVIEW_SCHEMA.omit({ verdict: true, summary: true })
+// The rationale stays out, so the hidden data line keeps holding numbers only.
+const SCORES_SCHEMA = REVIEW_SCHEMA.omit({ verdict: true, summary: true, rationale: true })
 type Scores = z.infer<typeof SCORES_SCHEMA>
 type ScoreKey = keyof Scores
 
@@ -100,6 +101,7 @@ export function buildCiReport(input: CiReportInput): CiReport {
     comment: joinSections([
       `${buildHeader(outcome, reviewNumber, input.headSha)}\n${DATA_PREFIX}${JSON.stringify(current)} -->`,
       previous ? buildComparison(previous, current) : buildScoreTable(current.scores),
+      buildRationale(current.scores, review.rationale),
       `### Summary\n\n${review.summary}`,
       footer,
       `<sub>${RETRY_HINT}</sub>`,
@@ -188,6 +190,15 @@ function buildHeader(outcome: CiOutcome, reviewNumber: number, headSha: string):
 function buildScoreTable(scores: Scores): string {
   const rows = SCORE_KEYS.map((key) => `| ${SCORE_LABELS[key]} | ${scores[key]}/10 |`)
   return ['| Criterion | Score |', '| --- | --- |', ...rows].join('\n')
+}
+
+// One bullet per criterion, in table order; line breaks are folded so each item stays one list entry.
+function buildRationale(scores: Scores, rationale: Review['rationale']): string {
+  const items = SCORE_KEYS.map(
+    (key) =>
+      `- **${SCORE_LABELS[key]} (${scores[key]}/10):** ${rationale[key].trim().replace(/\s*\n\s*/g, ' ')}`,
+  )
+  return ['### Rationale', ...items].join('\n')
 }
 
 // Previous vs current scores, the verdict change and the criteria that moved.

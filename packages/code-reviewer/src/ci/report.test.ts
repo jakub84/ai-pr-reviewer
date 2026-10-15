@@ -18,6 +18,14 @@ const review: Review = {
   testRiskCoverage: 6,
   documentation: 5,
   securitySafety: 10,
+  rationale: {
+    implementationCorrectness: 'Handles the empty list in `total()`.',
+    idiomaticity: 'Uses `reduce` like the code around it.',
+    complexity: 'One small pure function.',
+    testRiskCoverage: 'The happy path is tested;\n  the empty case is not.',
+    documentation: 'No comment on why cents are used.',
+    securitySafety: 'No external input.',
+  },
   verdict: 'pass',
   summary: 'Solid change. **Add** a test for the empty case.',
 }
@@ -67,6 +75,39 @@ describe('buildCiReport', () => {
     )
     expect(comment).toContain(`### Summary\n\n${review.summary}`)
     expect(comment).toContain('add the `ai-cr:review` label')
+  })
+
+  it('lists the rationale per criterion between the scores and the summary', () => {
+    const { comment } = ok(JSON.stringify(review))
+    expect(comment).toContain(
+      [
+        '### Rationale',
+        '- **Implementation correctness (8/10):** Handles the empty list in `total()`.',
+        '- **Idiomaticity (7/10):** Uses `reduce` like the code around it.',
+        '- **Complexity (9/10):** One small pure function.',
+        '- **Test / risk coverage (6/10):** The happy path is tested; the empty case is not.',
+        '- **Documentation (5/10):** No comment on why cents are used.',
+        '- **Security and safety (10/10):** No external input.',
+      ].join('\n'),
+    )
+    expect(comment.indexOf('| Security and safety |')).toBeLessThan(
+      comment.indexOf('### Rationale'),
+    )
+    expect(comment.indexOf('### Rationale')).toBeLessThan(comment.indexOf('### Summary'))
+  })
+
+  it('keeps the rationale out of the hidden data line', () => {
+    const { comment } = ok(JSON.stringify(review))
+    const dataLine = comment.split('\n').find((line) => line.startsWith('<!-- ai-cr-data '))
+    expect(dataLine).toBeDefined()
+    expect(dataLine).not.toContain('rationale')
+  })
+
+  it('maps JSON missing the rationale to error', () => {
+    const { rationale: _rationale, ...noRationale } = review
+    const { outcome, comment } = ok(JSON.stringify(noRationale))
+    expect(outcome).toBe('error')
+    expect(comment).toContain('fields: rationale')
   })
 
   it('maps a valid fail to failed', () => {
